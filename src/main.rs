@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, DateTime, Utc, FixedOffset};
 use clap::{App, Arg};
 use reqwest;
 use serde::{Deserialize, Serialize};
@@ -62,7 +62,10 @@ impl fmt::Display for Forecast {
 }
 fn convert_date(date_str: &str) -> String {
     let datetime = NaiveDateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S").unwrap();
-    datetime.format("%m-%d %H:%M").to_string()
+    let utc_datetime = DateTime::<Utc>::from_utc(datetime, Utc);
+    let est_offset = FixedOffset::east(-4 * 3600);
+    let est_datetime = utc_datetime.with_timezone(&est_offset);
+    est_datetime.format("%m-%d %H:%M").to_string()
 }
 
 fn get_emoji(weather_main: &str) -> &str {
