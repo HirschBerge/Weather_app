@@ -68,16 +68,45 @@ fn convert_date(date_str: &str) -> String {
     est_datetime.format("%m-%d %H:%M").to_string()
 }
 
-fn get_emoji(weather_main: &str) -> &str {
-    match weather_main {
+async fn get_current_weather(url: &str) -> Result<WeatherData, reqwest::Error> {
+    reqwest::get(url).await?.json::<WeatherData>().await
+}
+
+fn get_emoji(main: &str) -> &str {
+    match main {
+        "Thunderstorm" => "⛈️",
+        "Drizzle" => "🌦️",
+        "Rain" => "🌧️",
+        "Snow" => "❄️",
         "Clear" => "☀️",
         "Clouds" => "☁️",
-        "Rain" => "🌧️",
-        "Drizzle" => "🌦️",
-        "Thunderstorm" => "⛈️",
-        "Snow" => "❄️",
-        "Mist" | "Smoke" | "Haze" | "Dust" | "Fog" | "Sand" | "Ash" | "Squall" | "Tornado" => "🌫️",
-        _ => "",
+        _ => "🌫️",
+    }
+}
+
+fn print_current_weather(resp: &WeatherData, emoji: &str) {
+    println!(
+        "Current weather in \x1b[1;31m{}, {}\x1b[0m - \x1b[1;32m{}\x1b[0m {} - \x1b[1;33m{:.1}\x1b[0m°F",
+        resp.name, resp.sys.country, resp.weather[0].main, emoji, resp.main.temp
+    );
+}
+
+async fn get_forecast_weather(url: &str) -> Result<ForecastData, reqwest::Error> {
+    reqwest::get(url).await?.json::<ForecastData>().await
+}
+
+fn print_forecast_weather(forecast: &ForecastData, location: &str) {
+    println!("Forecast for the next 18 hours in {}:", location);
+
+    for i in 0..6 {
+        let temp = forecast.list[i].main.temp;
+        let emoji = get_emoji(&forecast.list[i].weather[0].main);
+        let description = &forecast.list[i].weather[0].description;
+        let time = &forecast.list[i].dt_txt.trim();
+        let time = convert_date(&time);
+
+        print!("\x1b[1;31m{}\x1b[0m{}\x1b[1;32m{:.1}°F\x1b[0m", time, emoji, temp);
+        print!("  \x1b[1;33m{}\x1b[0m | ", description);
     }
 }
 
@@ -110,26 +139,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units=imperial",
         location, API_KEY
     );
-    let forecast_url = format!("https://api.openweathermap.org/data/2.5/forecast?q={}&appid={}&units=imperial",
-        location, API_KEY);
-    let resp = reqwest::get(&current_url).await?.json::<WeatherData>().await?;
-    let emoji = get_emoji(&resp.weather[0].main);
-    println!(
-        "Current weather in \x1b[1;31m{}, {}\x1b[0m - \x1b[1;32m{}\x1b[0m {} - \x1b[1;33m{:.1}\x1b[0m°F",
-        resp.name, resp.sys.country, resp.weather[0].main, emoji, resp.main.temp
+    let forecast_url = format!(
+        "https://api.openweathermap.org/data/2.5/forecast?q={}&appid={}&units=imperial",
+        location, API_KEY
     );
+
+    let resp = get_current_weather(&current_url).await?;
+    let emoji = get_emoji(&resp.weather[0].main);
+    print_current_weather(&resp, &emoji);
+
     if matches.is_present("forecast") {
-        println!("Forecast for the next 18 hours in {}:", location);
-        let resp_forecast = reqwest::get(&forecast_url).await?.json::<ForecastData>().await?;
-        for i in 0..6 {
-            let temp = resp_forecast.list[i].main.temp;
-            let emoji = get_emoji(&resp_forecast.list[i].weather[0].main);
-            let description = &resp_forecast.list[i].weather[0].description;
-            let time = &resp_forecast.list[i].dt_txt.trim();
-            let time = convert_date(&time);
-            print!("\x1b[1;31m{}\x1b[0m{}\x1b[1;32m{:.1}°F\x1b[0m", time, emoji, temp);
-            print!("  \x1b[1;33m{}\x1b[0m | ", description);
-        }
+        let resp_forecast = get_forecast_weather(&forecast_url).await?;
+        print_forecast_weather(&resp_forecast, emoji);
     }
 
     Ok(())
