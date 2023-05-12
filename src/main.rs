@@ -80,7 +80,8 @@ fn get_emoji(main: &str) -> &str {
         "Snow" => "❄️",
         "Clear" => "☀️",
         "Clouds" => "☁️",
-        _ => "🌫️",
+        "Mist" | "Smoke" | "Haze" | "Dust" | "Fog" | "Sand" | "Ash" | "Squall" | "Tornado" => "🌫️",
+        _ => "",
     }
 }
 
@@ -151,6 +152,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if matches.is_present("forecast") {
         let resp_forecast = get_forecast_weather(&forecast_url).await?;
         print_forecast_weather(&resp_forecast, &resp.name);
+        println!("\n")
     }
 
     Ok(())
