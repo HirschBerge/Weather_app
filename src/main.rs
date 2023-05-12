@@ -150,7 +150,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if matches.is_present("forecast") {
         let resp_forecast = get_forecast_weather(&forecast_url).await?;
-        print_forecast_weather(&resp_forecast, emoji);
+        print_forecast_weather(&resp_forecast, &resp.name);
     }
 
     Ok(())
