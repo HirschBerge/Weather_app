@@ -111,6 +111,13 @@ fn print_forecast_weather(forecast: &ForecastData, location: &str) {
     }
 }
 
+fn print_polybar(resp: &WeatherData, emoji: &str){
+    println!(
+        "\x1b[1;32m{}\x1b[0m {} - \x1b[1;33m{:.1}\x1b[0m°F",
+        resp.weather[0].main, emoji, resp.main.temp
+    );
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matches = App::new("Weather App")
@@ -131,6 +138,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .takes_value(false)
                 .help("Do you want the forecast?"),
         )
+        .arg(
+            Arg::with_name("polybar")
+                .short("p")
+                .long("polybar")
+                .takes_value(false)
+                .help("For use w/ polybar"),
+        )
         .get_matches();
 
     let default_location = "Pittsburgh".to_string();
@@ -147,8 +161,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let resp = get_current_weather(&current_url).await?;
     let emoji = get_emoji(&resp.weather[0].main);
-    print_current_weather(&resp, &emoji);
-
+    if !matches.is_present("polybar"){
+        print_current_weather(&resp, &emoji);
+    }
+    if matches.is_present("polybar"){
+        print_polybar(&resp, &emoji);
+    }
     if matches.is_present("forecast") {
         let resp_forecast = get_forecast_weather(&forecast_url).await?;
         print_forecast_weather(&resp_forecast, &resp.name);
