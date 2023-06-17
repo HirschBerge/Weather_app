@@ -113,7 +113,7 @@ fn print_forecast_weather(forecast: &ForecastData, location: &str) {
 
 fn print_polybar(resp: &WeatherData, emoji: &str){
     println!(
-        "\x1b[1;32m{}\x1b[0m {} - \x1b[1;33m{:.1}\x1b[0m°F",
+        "{} {} {:.1}°F",
         resp.weather[0].main, emoji, resp.main.temp
     );
 }
