@@ -3,6 +3,7 @@ use clap::{App, Arg};
 use reqwest;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+#[allow(deprecated)]
 
 #[derive(Debug, Serialize, Deserialize)]
 struct WeatherData {
@@ -63,7 +64,10 @@ impl fmt::Display for Forecast {
 fn convert_date(date_str: &str) -> String {
     let datetime = NaiveDateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S").unwrap();
     let utc_datetime = DateTime::<Utc>::from_utc(datetime, Utc);
-    let est_offset = FixedOffset::east(-4 * 3600);
+
+    // Create a fixed offset of -4 hours (for Eastern Standard Time)
+    let est_offset = FixedOffset::east_opt(-4 * 3600).unwrap();  // 4 hours in seconds
+
     let est_datetime = utc_datetime.with_timezone(&est_offset);
     est_datetime.format("%m-%d %H:%M").to_string()
 }
