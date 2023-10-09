@@ -3,6 +3,9 @@ use clap::{App, Arg};
 use reqwest;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use std::env;
+use std::path::Path;
+
 #[allow(deprecated)]
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,7 +17,7 @@ struct WeatherData {
     coord: Coord,
 }
 
-const API_KEY: &str = "4b0a11494a50bcaf28b0f5aa8099fec4";
+// const api_key: String = env::var("api_key").expect("api_key not set in .env file");//= "4b0a11494a50bcaf28b0f5aa8099fec4";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Main {
@@ -124,6 +127,10 @@ fn print_polybar(resp: &WeatherData, emoji: &str){
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let env_path = Path::new(manifest_dir).join(".env");
+    dotenv::from_path(&env_path).ok();
+    let api_key = env::var("API_KEY").expect("api_key not set in .env file");
     let matches = App::new("Weather App")
         .version("1.0")
         .author("Hirschy Kirkwood")
@@ -156,11 +163,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let current_url = format!(
         "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units=imperial",
-        location, API_KEY
+        location, api_key
     );
     let forecast_url = format!(
         "https://api.openweathermap.org/data/2.5/forecast?q={}&appid={}&units=imperial",
-        location, API_KEY
+        location, api_key
     );
 
     let resp = get_current_weather(&current_url).await?;
