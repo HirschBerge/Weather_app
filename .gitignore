@@ -1,3 +1,2 @@
 /target
-.envrc flake.lock flake.nix
 .env
