@@ -1,13 +1,12 @@
-use chrono::{NaiveDateTime, DateTime, Utc, FixedOffset};
+use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 use clap::{App, Arg};
 use reqwest;
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use std::env;
+use std::fmt;
 use std::path::Path;
 
 #[allow(deprecated)]
-
 #[derive(Debug, Serialize, Deserialize)]
 struct WeatherData {
     name: String,
@@ -57,11 +56,7 @@ struct Forecast {
 impl fmt::Display for Forecast {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let emoji = get_emoji(&self.weather[0].main);
-        write!(
-            f,
-            "{} {}: {:.1}°F",
-            self.dt_txt, emoji, self.main.temp
-        )
+        write!(f, "{} {}: {:.1}°F", self.dt_txt, emoji, self.main.temp)
     }
 }
 fn convert_date(date_str: &str) -> String {
@@ -69,7 +64,7 @@ fn convert_date(date_str: &str) -> String {
     let utc_datetime = DateTime::<Utc>::from_utc(datetime, Utc);
 
     // Create a fixed offset of -4 hours (for Eastern Standard Time)
-    let est_offset = FixedOffset::east_opt(-4 * 3600).unwrap();  // 4 hours in seconds
+    let est_offset = FixedOffset::east_opt(-4 * 3600).unwrap(); // 4 hours in seconds
 
     let est_datetime = utc_datetime.with_timezone(&est_offset);
     est_datetime.format("%m-%d %H:%M").to_string()
@@ -113,16 +108,16 @@ fn print_forecast_weather(forecast: &ForecastData, location: &str) {
         let time = &forecast.list[i].dt_txt.trim();
         let time = convert_date(&time);
 
-        print!("\x1b[1;31m{}\x1b[0m{}\x1b[1;32m{:.1}°F\x1b[0m", time, emoji, temp);
+        print!(
+            "\x1b[1;31m{}\x1b[0m{}\x1b[1;32m{:.1}°F\x1b[0m",
+            time, emoji, temp
+        );
         print!("  \x1b[1;33m{}\x1b[0m | ", description);
     }
 }
 
-fn print_polybar(resp: &WeatherData, emoji: &str){
-    println!(
-        "{} {} {:.1}°F",
-        resp.weather[0].main, emoji, resp.main.temp
-    );
+fn print_polybar(resp: &WeatherData, emoji: &str) {
+    println!("{} {} {:.1}°F", resp.weather[0].main, emoji, resp.main.temp);
 }
 
 #[tokio::main]
@@ -172,10 +167,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let resp = get_current_weather(&current_url).await?;
     let emoji = get_emoji(&resp.weather[0].main);
-    if !matches.is_present("polybar"){
+    if !matches.is_present("polybar") {
         print_current_weather(&resp, &emoji);
     }
-    if matches.is_present("polybar"){
+    if matches.is_present("polybar") {
         print_polybar(&resp, &emoji);
     }
     if matches.is_present("forecast") {
