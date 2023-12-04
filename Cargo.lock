@@ -1215,7 +1215,7 @@ checksum = "a901d592cafaa4d711bc324edfaff879ac700b19c3dfd60058d2b445be2691eb"
 
 [[package]]
 name = "weather_app"
-version = "0.1.0"
+version = "1.1.0"
 dependencies = [
  "chrono",
  "clap",

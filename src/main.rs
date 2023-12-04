@@ -83,7 +83,7 @@ fn get_emoji(main: &str) -> &str {
         "Clear" => "☀️",
         "Clouds" => "☁️",
         "Mist" | "Smoke" | "Haze" | "Dust" | "Fog" | "Sand" | "Ash" | "Squall" | "Tornado" => "🌫️",
-        _ => "",
+        _ => "Fuck Me",
     }
 }
 
@@ -127,8 +127,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::from_path(&env_path).ok();
     let api_key = env::var("API_KEY").expect("api_key not set in .env file");
     let matches = App::new("Weather App")
-        .version("1.0")
-        .author("Hirschy Kirkwood")
+        .version("v1.1.0")
+        .author("HirschBerge")
         .about("Displays the current weather of a given city")
         .arg(
             Arg::with_name("location")
@@ -149,7 +149,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .short("p")
                 .long("polybar")
                 .takes_value(false)
-                .help("For use w/ polybar"),
+                .help("For use w/ your favorite statusbar."),
         )
         .get_matches();
 
