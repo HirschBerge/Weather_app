@@ -116,7 +116,7 @@ fn print_forecast_weather(forecast: &ForecastData, location: &str) {
     }
 }
 
-fn print_polybar(resp: &WeatherData, emoji: &str) {
+fn print_bar(resp: &WeatherData, emoji: &str) {
     println!("{} {} {:.1}°F", resp.weather[0].main, emoji, resp.main.temp);
 }
 
@@ -145,9 +145,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .help("Do you want the forecast?"),
         )
         .arg(
-            Arg::with_name("polybar")
-                .short("p")
-                .long("polybar")
+            Arg::with_name("bar")
+                .short("b")
+                .long("bar")
                 .takes_value(false)
                 .help("For use w/ your favorite statusbar."),
         )
@@ -167,11 +167,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let resp = get_current_weather(&current_url).await?;
     let emoji = get_emoji(&resp.weather[0].main);
-    if !matches.is_present("polybar") {
+    if !matches.is_present("bar") {
         print_current_weather(&resp, &emoji);
     }
-    if matches.is_present("polybar") {
-        print_polybar(&resp, &emoji);
+    if matches.is_present("bar") {
+        print_bar(&resp, &emoji);
     }
     if matches.is_present("forecast") {
         let resp_forecast = get_forecast_weather(&forecast_url).await?;
