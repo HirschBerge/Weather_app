@@ -67,7 +67,7 @@ fn convert_date(date_str: &str) -> String {
     let est_offset = FixedOffset::east_opt(-4 * 3600).unwrap(); // 4 hours in seconds
 
     let est_datetime = utc_datetime.with_timezone(&est_offset);
-    est_datetime.format("%m-%d %H:%M").to_string()
+    est_datetime.format("%m-%d at %H:%M").to_string()
 }
 
 async fn get_current_weather(url: &str) -> Result<WeatherData, reqwest::Error> {
@@ -109,10 +109,10 @@ fn print_forecast_weather(forecast: &ForecastData, location: &str) {
         let time = convert_date(&time);
 
         print!(
-            "\x1b[1;31m{}\x1b[0m{}\x1b[1;32m{:.1}°F\x1b[0m",
+            "\x1b[1;31m{}\x1b[0m {}\x1b[1;32m {:.1}°F\x1b[0m",
             time, emoji, temp
         );
-        print!("  \x1b[1;33m{}\x1b[0m | ", description);
+        println!("\x1b[1;33m {}\x1b[0m", description);
     }
 }
 
