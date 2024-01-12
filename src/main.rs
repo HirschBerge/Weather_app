@@ -1,6 +1,5 @@
 use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 use clap::{App, Arg};
-use reqwest;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fmt;
@@ -106,7 +105,7 @@ fn print_forecast_weather(forecast: &ForecastData, location: &str) {
         let emoji = get_emoji(&forecast.list[i].weather[0].main);
         let description = &forecast.list[i].weather[0].description;
         let time = &forecast.list[i].dt_txt.trim();
-        let time = convert_date(&time);
+        let time = convert_date(time);
 
         print!(
             "\x1b[1;31m{}\x1b[0m {}\x1b[1;32m {:.1}°F\x1b[0m",
@@ -168,10 +167,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let resp = get_current_weather(&current_url).await?;
     let emoji = get_emoji(&resp.weather[0].main);
     if !matches.is_present("bar") {
-        print_current_weather(&resp, &emoji);
+        print_current_weather(&resp, emoji);
     }
     if matches.is_present("bar") {
-        print_bar(&resp, &emoji);
+        print_bar(&resp, emoji);
     }
     if matches.is_present("forecast") {
         let resp_forecast = get_forecast_weather(&forecast_url).await?;
