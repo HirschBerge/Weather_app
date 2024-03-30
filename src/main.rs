@@ -6,29 +6,29 @@ use std::fmt;
 use std::path::Path;
 
 #[allow(deprecated)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct WeatherData {
-    name: String,
-    main: Main,
-    weather: Vec<Weather>,
-    sys: Sys,
     coord: Coord,
+    main: Main,
+    name: String,
+    sys: Sys,
+    weather: Vec<Weather>,
 }
 
 // const api_key: String = env::var("api_key").expect("api_key not set in .env file");//= "4b0a11494a50bcaf28b0f5aa8099fec4";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Main {
     temp: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Weather {
     main: String,
     description: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Sys {
     country: String,
     state: Option<String>,
