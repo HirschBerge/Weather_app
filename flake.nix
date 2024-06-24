@@ -34,6 +34,7 @@
           packages = with pkgs; [
             rustToolchain
             openssl
+            bacon
             pkg-config
             cargo-deny
             cargo-edit
