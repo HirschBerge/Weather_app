@@ -55,7 +55,7 @@ struct Forecast {
 impl fmt::Display for Forecast {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let emoji = get_emoji(&self.weather[0].main);
-        write!(f, "{} {}: {:.1}°F", self.dt_txt, emoji, self.main.temp)
+        write!(f, "{} {} : {:.1}°F", self.dt_txt, emoji, self.main.temp)
     }
 }
 fn convert_date(date_str: &str) -> String {
@@ -76,12 +76,12 @@ async fn get_current_weather(url: &str) -> Result<WeatherData, reqwest::Error> {
 fn get_emoji(main: &str) -> &str {
     match main {
         "Thunderstorm" => "⛈️",
-        "Drizzle" => "🌦️",
-        "Rain" => "🌧️",
-        "Snow" => "❄️",
-        "Clear" => "☀️",
+        "Drizzle" => "🌦️ ",
+        "Rain" => "🌧️ ",
+        "Snow" => "❄️ ",
+        "Clear" => "☀️ ",
         "Clouds" => "☁️",
-        "Mist" | "Smoke" | "Haze" | "Dust" | "Fog" | "Sand" | "Ash" | "Squall" | "Tornado" => "🌫️",
+        "Mist" | "Smoke" | "Haze" | "Dust" | "Fog" | "Sand" | "Ash" | "Squall" | "Tornado" => "🌫️ ",
         _ => "Fuck Me",
     }
 }
@@ -125,6 +125,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let env_path = Path::new(manifest_dir).join(".env");
     dotenv::from_path(&env_path).ok();
     let api_key = env::var("API_KEY").expect("api_key not set in .env file");
+    // TODO: Fix this fucking monstrosity. Needs updated ASAP
     let matches = App::new("Weather App")
         .version("v1.1.0")
         .author("HirschBerge")
