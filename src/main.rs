@@ -1,5 +1,8 @@
 use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 use clap::{App, Arg};
+extern crate prettytable;
+use prettytable::{Table, Row, Cell};
+use prettytable::format;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fmt;
@@ -100,19 +103,36 @@ async fn get_forecast_weather(url: &str) -> Result<ForecastData, reqwest::Error>
 fn print_forecast_weather(forecast: &ForecastData, location: &str) {
     println!("Forecast for the next 18 hours in {}:", location);
 
+    // Create a new table
+    let mut table = Table::new();
+
+    // Define table format (optional)
+    table.set_format(*format::consts::FORMAT_CLEAN);
+
+    // Add table headers
+    table.add_row(Row::new(vec![
+        Cell::new("Time").style_spec("Fb"),
+        Cell::new("Temp (°F)").style_spec("Fb"),
+        Cell::new("Description").style_spec("Fb"),
+    ]));
+
+    // Iterate over the forecast data
     for i in 0..6 {
-        let temp = forecast.list[i].main.temp;
+        let temp = format!("{:.1}°F", forecast.list[i].main.temp);
         let emoji = get_emoji(&forecast.list[i].weather[0].main);
         let description = &forecast.list[i].weather[0].description;
-        let time = &forecast.list[i].dt_txt.trim();
-        let time = convert_date(time);
+        let time = convert_date(forecast.list[i].dt_txt.trim());
 
-        print!(
-            "\x1b[1;31m{}\x1b[0m {}\x1b[1;32m {:.1}°F\x1b[0m",
-            time, emoji, temp
-        );
-        println!("\x1b[1;33m {}\x1b[0m", description);
+        // Add rows to the table
+        table.add_row(Row::new(vec![
+            Cell::new(&time).style_spec("Fm"),
+            Cell::new(&temp).style_spec("Fg"),
+            Cell::new(format!("{} {}", &emoji, &description).as_str()).style_spec("Fr"),
+        ]));
     }
+
+    // Print the table
+    table.printstd();
 }
 
 fn print_bar(resp: &WeatherData, emoji: &str) {
