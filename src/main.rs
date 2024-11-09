@@ -1,66 +1,13 @@
 use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
 use clap::{App, Arg};
+use types::{get_emoji, ForecastData, WeatherData};
+mod types;
 extern crate prettytable;
-use prettytable::{Table, Row, Cell};
 use prettytable::format;
-use serde::{Deserialize, Serialize};
+use prettytable::{Cell, Row, Table};
 use std::env;
-use std::fmt;
 use std::path::Path;
 
-#[allow(deprecated)]
-#[derive(Debug, Deserialize, Serialize)]
-struct WeatherData {
-    coord: Coord,
-    main: Main,
-    name: String,
-    sys: Sys,
-    weather: Vec<Weather>,
-}
-
-// const api_key: String = env::var("api_key").expect("api_key not set in .env file");//= "4b0a11494a50bcaf28b0f5aa8099fec4";
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Main {
-    temp: f64,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Weather {
-    main: String,
-    description: String,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct Sys {
-    country: String,
-    state: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Coord {
-    lat: f64,
-    lon: f64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct ForecastData {
-    list: Vec<Forecast>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Forecast {
-    dt_txt: String,
-    main: Main,
-    weather: Vec<Weather>,
-}
-
-impl fmt::Display for Forecast {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let emoji = get_emoji(&self.weather[0].main);
-        write!(f, "{} {} : {:.1}°F", self.dt_txt, emoji, self.main.temp)
-    }
-}
 fn convert_date(date_str: &str) -> String {
     let datetime = NaiveDateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S").unwrap();
     let utc_datetime = DateTime::<Utc>::from_utc(datetime, Utc);
@@ -74,19 +21,6 @@ fn convert_date(date_str: &str) -> String {
 
 async fn get_current_weather(url: &str) -> Result<WeatherData, reqwest::Error> {
     reqwest::get(url).await?.json::<WeatherData>().await
-}
-
-fn get_emoji(main: &str) -> &str {
-    match main {
-        "Thunderstorm" => "⛈️",
-        "Drizzle" => "🌦️ ",
-        "Rain" => "🌧️ ",
-        "Snow" => "❄️ ",
-        "Clear" => "☀️ ",
-        "Clouds" => "☁️",
-        "Mist" | "Smoke" | "Haze" | "Dust" | "Fog" | "Sand" | "Ash" | "Squall" | "Tornado" => "🌫️ ",
-        _ => "Fuck Me",
-    }
 }
 
 fn print_current_weather(resp: &WeatherData, emoji: &str) {
@@ -146,7 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::from_path(&env_path).ok();
     let api_key = env::var("API_KEY").expect("api_key not set in .env file");
     // TODO: Fix this fucking monstrosity. Needs updated ASAP
-    let matches = App::new("Weather App")
+    let args = App::new("Weather App")
         .version("v1.1.0")
         .author("HirschBerge")
         .about("Displays the current weather of a given city")
@@ -174,7 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_matches();
 
     let default_location = "Pittsburgh".to_string();
-    let location = matches.value_of("location").unwrap_or(&default_location);
+    let location = args.value_of("location").unwrap_or(&default_location);
 
     let current_url = format!(
         "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units=imperial",
@@ -187,16 +121,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let resp = get_current_weather(&current_url).await?;
     let emoji = get_emoji(&resp.weather[0].main);
-    if !matches.is_present("bar") {
-        print_current_weather(&resp, emoji);
-    }
-    if matches.is_present("bar") {
-        print_bar(&resp, emoji);
-    }
-    if matches.is_present("forecast") {
-        let resp_forecast = get_forecast_weather(&forecast_url).await?;
-        print_forecast_weather(&resp_forecast, &resp.name);
-        println!("\n")
+    match args {
+        arg if arg.is_present("forecast") => {
+            let resp_forecast = get_forecast_weather(&forecast_url).await?;
+            print_forecast_weather(&resp_forecast, &resp.name);
+            println!("\n")
+        }
+        arg if arg.is_present("bar") => {
+            print_bar(&resp, emoji);
+        }
+        _ => {
+            print_current_weather(&resp, emoji);
+        }
     }
 
     Ok(())
