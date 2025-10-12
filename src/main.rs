@@ -78,7 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let env_path = Path::new(manifest_dir).join(".env");
     dotenv::from_path(&env_path).ok();
-    let api_key = env::var("API_KEY").expect("api_key not set in .env file");
+    let api_key = env::var("WEATHER_API_KEY").expect("api_key not set in .env file");
     // TODO: Fix this fucking monstrosity. Needs updated ASAP
     let args = App::new("Weather App")
         .version("v1.1.0")
